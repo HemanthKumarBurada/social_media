@@ -28,4 +28,10 @@ export class AuthController {
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
   }
+
+  // New endpoint for Resending OTP
+  @Post('resend-otp')
+  resendOtp(@Body() dto: ForgotPasswordDto) {
+    return this.authService.resendOtp(dto);
+  }
 }

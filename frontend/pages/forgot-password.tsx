@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from '../styles/Register.module.css'; // or use LoginRegister.module.css if preferred
+import styles from '../styles/Register.module.css';
 import { useRouter } from 'next/router';
 
 export default function ForgotPassword() {
@@ -11,7 +11,15 @@ export default function ForgotPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
   const router = useRouter();
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendTimer]);
 
   const sendOtp = async () => {
     setLoading(true);
@@ -20,6 +28,7 @@ export default function ForgotPassword() {
       const res = await axios.post('http://localhost:4000/auth/forgot-password', { email });
       setMessage(res.data.message);
       setStep(2);
+      setResendTimer(60); // Start 60 seconds cooldown
     } catch (err: any) {
       setMessage(err.response?.data?.message || 'Error sending OTP');
     } finally {
@@ -94,6 +103,15 @@ export default function ForgotPassword() {
           />
           <button onClick={resetPassword} className={styles.button} disabled={loading}>
             {loading ? 'Resetting...' : 'Reset Password'}
+          </button>
+
+          <button
+            onClick={sendOtp}
+            className={styles.button}
+            disabled={resendTimer > 0 || loading}
+            style={{ marginTop: '10px' }}
+          >
+            {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
           </button>
         </>
       )}

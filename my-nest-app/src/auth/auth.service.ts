@@ -9,10 +9,14 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+  ) {}
 
   // REGISTER
   async register(dto: RegisterDto) {
@@ -57,7 +61,7 @@ export class AuthService {
     return { message: 'Login successful', userId: user.id };
   }
 
-  // FORGOT PASSWORD
+  // FORGOT PASSWORD or RESEND OTP
   async forgotPassword(dto: ForgotPasswordDto) {
     const { email } = dto;
 
@@ -74,17 +78,17 @@ export class AuthService {
       data: { otp, otpExpiry },
     });
 
-    // Nodemailer setup
+    // Nodemailer setup using env variables
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'hemanthburada2003@gmail.com', // Your Gmail
-        pass: 'xwsfxboiefibnrag',           // App password
+        user: this.config.get<string>('EMAIL_USER'),
+        pass: this.config.get<string>('EMAIL_PASS'),
       },
     });
 
     await transporter.sendMail({
-      from: '"my App" <hemanthburada2003@gmail.com>',
+      from: `"My App" <${this.config.get<string>('EMAIL_USER')}>`,
       to: email,
       subject: 'OTP for Password Reset',
       text: `Your OTP is ${otp}. It will expire in 10 minutes.`,
@@ -122,5 +126,10 @@ export class AuthService {
     });
 
     return { message: 'Password reset successful' };
+  }
+
+  // RESEND OTP
+  async resendOtp(dto: ForgotPasswordDto) {
+    return this.forgotPassword(dto);
   }
 }

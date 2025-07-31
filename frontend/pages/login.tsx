@@ -42,10 +42,11 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           className={styles.input}
         />
+        <p><Link href="/forgot-password">Forgot Password?</Link></p>
         <button type="submit" className={styles.button}>Login</button>
 
         <p>Don't have an account? <Link href="/register">Register</Link></p>
-        <p><Link href="/forgot-password">Forgot Password?</Link></p>
+        
       </form>
 
       {message && <p className={styles.message}>{message}</p>}
